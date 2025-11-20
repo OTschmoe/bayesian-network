@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Bayesian Network and Reasoning in Bioinformatics
 Programming Assignment: CSCI 384 AI - Advanced Machine Learning
@@ -12,6 +11,7 @@ This project implements Bayesian Networks for bioinformatics applications includ
 
 Difficulty Level: 6/10
 """
+
 
 import pandas as pd
 import numpy as np
@@ -41,30 +41,59 @@ print("=" * 60)
 print("\nSTEP 1: Loading and Exploring Bioinformatics Datasets")
 print("-" * 50)
 
-# TODO: Load the three datasets
 # HINT: Use pd.read_csv() to load the CSV files from the data/ folder
-gene_data = None  # TODO: Load gene_expression.csv
-disease_data = None  # TODO: Load disease_markers.csv (now contains real SNP names)
-protein_data = None  # TODO: Load protein_interactions.csv
+gene_data = pd.read_csv("data/gene_expression.csv") 
+disease_data = pd.read_csv("data/disease_markers.csv")  
+protein_data = pd.read_csv("data/protein_interactions.csv")
 
-# TODO: Print basic information about each dataset
 # HINT: Use .shape, .columns, and .value_counts() to explore the data
+#Print the shapes of all the datasets
+print("Data Shapes")
 print(f"Gene Expression Dataset Shape: {gene_data.shape if gene_data is not None else 'Not loaded'}")
-# TODO: Add more exploration code here
+print(f"Disease Markers Dataset Shape: {disease_data.shape if disease_data is not None else 'Not loaded'}")
+print(f"Protein Interactions Dataset Shape: {protein_data.shape if protein_data is not None else 'Not loaded'}")
 
-# TODO: Calculate basic statistics for gene expression data
-# HINT: Use .describe() to get statistical summary
-gene_stats = None  # TODO: Calculate statistics
+#print the first few column names for each dataset
+print("\nData Column Names")
+print("First 10 Gene Expression Dataset column names:")
+print("    ", end="")
+for i in range(10):
+    print(f"{gene_data.columns[i]}, ", end="")
+print()
+print()
+
+print("First 10 Disease Markers Dataset column names:")
+print("    ", end="")
+for i in range(10):
+    print(f"{disease_data.columns[i]}, ", end="")
+print()
+print()
+
+print("First 5 Protein Interactions Dataset column names:")
+print("    ", end="")
+for i in range(5):
+    print(f"{protein_data.columns[i]}, ", end="")
+print()
+print()
+
+#print the number of unique values in each dataset
+print("Data Values")
+print(f"Number of Unique Gene Expression Dataset values: {len(gene_data.value_counts()) if gene_data is not None else 'Not loaded'}")
+print(f"Number of Unique Disease Markers Dataset values: {len(disease_data.value_counts()) if disease_data is not None else 'Not loaded'}")
+print(f"Number of Unique Protein Interactions Dataset values: {len(protein_data.value_counts()) if gene_data is not None else 'Not loaded'}")
+
+gene_stats = gene_data.describe()  
 print(f"\nGene Expression Statistics:")
-# TODO: Add statistics printing code
+print(f"{gene_stats}")
 
-# TODO: Calculate correlation with disease status
-# HINT: Use .corrwith() to find correlations between genes and disease status
-# HINT: Use .abs().nlargest(5) to find top 5 correlated genes
-gene_correlations = None  # TODO: Calculate correlations
-top_correlated_genes = None  # TODO: Find top 5 correlated genes
+#calculate top correlated genes
+genes_cut = gene_data.drop(columns=["sample_id", "disease_status"]) #remove the sample id and disease status column, so it's just the gene columns left.
+gene_correlations = genes_cut.corrwith(gene_data["disease_status"]) #now correlate with the genes to disease_status only.
+top_correlated_genes = gene_correlations.abs().nlargest(5)
 print(f"\nTop 5 genes correlated with disease status:")
-# TODO: Add correlation printing code
+for i, gene_name in enumerate(top_correlated_genes.index, start=1): #this makes it go 1-5 with the gene name
+    corr_value = gene_correlations[gene_name] #this grabs the correlation for the gene name
+    print(i, "  ", gene_name, "  ", corr_value) #prints it all.
 
 # ============================================================================
 # [15 pts] STEP 2: Data Preprocessing and Feature Engineering
@@ -73,50 +102,44 @@ print(f"\nTop 5 genes correlated with disease status:")
 print("\nSTEP 2: Data Preprocessing and Feature Engineering")
 print("-" * 50)
 
-# TODO: Prepare gene expression data for analysis
-# HINT: Separate features from target variable
-gene_features = None  # TODO: Extract features
-gene_target = None  # TODO: Extract target
+gene_features = gene_data.drop(columns=["sample_id", "disease_status"]) #once again drop the sample_id and disease_status to ONLY get the genes.
+gene_target = gene_data["disease_status"]  #the target is disease_status i think.
 
-# TODO: Normalize gene expression data
-# HINT: Use StandardScaler() to normalize the features
-# HINT: Use fit_transform() and create a DataFrame with original column names
-scaler = None  # TODO: Create scaler
-gene_features_scaled = None  # TODO: Scale features
+scaler = StandardScaler()  #Create scaler
+gene_features_scaled = pd.DataFrame(scaler.fit_transform(gene_features), columns=gene_features.columns) #we make a pandas dataframe object and use the scaler fit transform to scale everything, then say columns = gene_features.columns to keep the same names.
 
-# TODO: Create binary features for high/low expression
-# HINT: Use (gene_features_scaled > 0).astype(int) to create binary features
-# HINT: Rename columns to add "_high" suffix
-gene_features_binary = None  # TODO: Create binary features
+#this creates binary somehow
+gene_features_binary = (gene_features_scaled > 0).astype(int)  # Create binary features
+gene_features_binary.columns = [col + "_high" for col in gene_features_binary.columns]  #this renames all the columns and adds _high
 
-# TODO: Combine original and binary features
-# HINT: Use pd.concat() to combine scaled and binary features
-gene_features_combined = None  # TODO: Combine features
+gene_features_combined = pd.concat([gene_features_scaled, gene_features_binary])  # concat scaled features and binary features
 print(f"Combined feature set shape: {gene_features_combined.shape if gene_features_combined is not None else 'Not implemented'}")
 
-# TODO: Prepare disease markers data
-# HINT: Separate features from target variable
-disease_features = None  # TODO: Extract disease features
-disease_target = None  # TODO: Extract disease target
+disease_features = disease_data.drop(columns=['patient_id', 'diabetes_status']) # drop columns to get the data from the features
+disease_target = disease_data['diabetes_status'] 
 
-# TODO: Create interaction features for SNPs
 # HINT: Find SNP columns using list comprehension with .startswith('rs')
 # NOTE: The dataset now contains real SNP names like rs7903146, rs12255372, etc.
-snp_columns = None  # TODO: Find SNP columns
-clinical_columns = ['age', 'bmi', 'glucose', 'insulin', 'hdl_cholesterol']
+snp_columns = [col for col in disease_features.columns if col.startswith('rs')] # any columns that starts with 'rs' to find the dataset
+clinical_columns = ['age', 'bmi', 'glucose', 'insulin', 'hdl_cholesterol'] #other columns
 
-# TODO: Create SNP interaction features
-# HINT: Use nested loops to create pairwise interactions
-# HINT: Multiply SNP values: disease_features[snp_columns[i]] * disease_features[snp_columns[j]]
-snp_interactions = None  # TODO: Create SNP interactions
+#Creating snp interactions
+snp_interactions = pd.DataFrame()  #this needs to be a dataframe to concatinate it later
 
-# TODO: Combine clinical and SNP features
-# HINT: Use pd.concat() to combine original features with interaction features
-disease_features_combined = None  # TODO: Combine disease features
+for i in range(len(snp_columns)):
+    for j in range(i+1, len(snp_columns)):
+        col1 = snp_columns[i]
+        col2 = snp_columns[j]
+        new_col = str(col1) + "by" + str(col2)
+        snp_interactions[new_col] = disease_features[col1] * disease_features[col2]
+
+#this concatonates the original and the new one.
+disease_features_combined = pd.concat([disease_features, snp_interactions], axis=1)  #Combine disease features
 print(f"Disease features combined shape: {disease_features_combined.shape if disease_features_combined is not None else 'Not implemented'}")
 
+
 # ============================================================================
-# [18 pts] STEP 3: Bayesian Network Structure Learning
+# [18 pts] STEP 3: Bayesian Network Structure Learning - Zamzam
 # ============================================================================
 
 print("\nSTEP 3: Bayesian Network Structure Learning")
@@ -138,13 +161,21 @@ def learn_bayesian_structure(data, threshold=0.3):
     """
     # TODO: Calculate correlation matrix
     # HINT: Use data.corr().abs() to get absolute correlations
-    correlations = None  # TODO: Calculate correlations
+    correlations = data.corr().abs() # TODO: Calculate correlations
     edges = []
     
     # TODO: Find edges above threshold
     # HINT: Use nested loops to check each pair of features
     # HINT: Only add edges if correlation > threshold
     # TODO: Add your loop code here
+    cols = correlations.columns
+    for i in range(len(cols)):
+        for j in range(i + 1, len(cols)):
+            node1 = cols[i]
+            node2 = cols[j]
+            corr_val = correlations.iloc[i, j]
+            if corr_val > threshold:
+                edges.append((node1, node2, corr_val))
     
     return edges
 
@@ -152,7 +183,7 @@ def learn_bayesian_structure(data, threshold=0.3):
 # HINT: Select a subset of genes for network analysis
 # HINT: Use genes from different modules: ['CDK1', 'MAPK1', 'PIK3CA', 'BCL2', 'GLUT1', 'MYC']
 selected_genes = ['CDK1', 'MAPK1', 'PIK3CA', 'BCL2', 'GLUT1', 'MYC']
-gene_subset = None  # TODO: Select gene subset
+gene_subset = None # TODO: Select gene subset
 gene_network_edges = None  # TODO: Learn gene network structure
 print(f"Gene network edges found: {len(gene_network_edges) if gene_network_edges is not None else 'Not implemented'}")
 
@@ -172,7 +203,7 @@ print(f"Gene network nodes: {gene_graph.number_of_nodes() if gene_graph is not N
 print(f"Disease network nodes: {disease_graph.number_of_nodes() if disease_graph is not None else 'Not created'}, edges: {disease_graph.number_of_edges() if disease_graph is not None else 'Not created'}")
 
 # ============================================================================
-# [15 pts] STEP 4: Conditional Probability Calculations
+# [15 pts] STEP 4: Conditional Probability Calculations - NATHEN
 # ============================================================================
 
 print("\nSTEP 4: Conditional Probability Calculations")
@@ -242,7 +273,7 @@ print("\nConditional probabilities for disease markers:")
 # TODO: Add disease probability printing code
 
 # ============================================================================
-# [18 pts] STEP 5: Probabilistic Inference
+# [18 pts] STEP 5: Probabilistic Inference - Owen
 # ============================================================================
 
 print("\nSTEP 5: Probabilistic Inference")
@@ -265,61 +296,53 @@ def naive_bayes_inference(features, conditional_probs, prior_probs):
     """
     predictions = []
     
-    # TODO: Loop through each sample
+    #loop through each sample
     for _, row in features.iterrows():
-        # TODO: Calculate likelihood for each class
-        # HINT: Start with likelihood_0 = 1.0 and likelihood_1 = 1.0
-        likelihood_0 = 1.0  # TODO: Initialize
-        likelihood_1 = 1.0  # TODO: Initialize
+        #calculate likelihood for each class
+        likelihood_0 = 1.0
+        likelihood_1 = 1.0
         
-        # TODO: Loop through each feature
         for feature in features.columns:
             feature_val = row[feature]
             
-            # TODO: Get conditional probabilities from dictionary
-            # HINT: Use .get() method with default value 0.5
-            prob_0 = 0.5  # TODO: Get probability for class 0
-            prob_1 = 0.5  # TODO: Get probability for class 1
+            #get conditional probabilities from dictionary
+            prob_0 = conditional_probs[feature][0].get(feature_val, 0.5) #use the feature with class 0 and the default value of .5
+            prob_1 = conditional_probs[feature][1].get(feature_val, 0.5)
             
-            # TODO: Multiply likelihoods
-            likelihood_0 *= prob_0  # TODO: Update likelihood_0
-            likelihood_1 *= prob_1  # TODO: Update likelihood_1
+            likelihood_0 *= prob_0  #update likelihood_0
+            likelihood_1 *= prob_1  #update likelihood_1
         
-        # TODO: Apply prior probabilities
-        # HINT: Multiply likelihood by prior: posterior = likelihood * prior
-        posterior_0 = 0.0  # TODO: Calculate posterior for class 0
-        posterior_1 = 0.0  # TODO: Calculate posterior for class 1
+        #apply prior probabilities
+        posterior_0 = likelihood_0 * prior_probs[0]
+        posterior_1 = likelihood_1 * prior_probs[1]
         
-        # TODO: Normalize probabilities
-        # HINT: Divide by sum of posteriors
-        total = 0.0  # TODO: Calculate total
-        posterior_0 /= total  # TODO: Normalize
-        posterior_1 /= total  # TODO: Normalize
+        #normalize probabilities
+        total = posterior_0 + posterior_1  #total for posteriors
+        posterior_0 /= total  #normalize by dividing posterior / total
+        posterior_1 /= total 
         
-        # TODO: Make prediction
-        # HINT: Choose class with higher posterior probability
-        predictions.append(0)  # TODO: Make prediction
+        #choose class with higher posterior probability
+        #class in this case is either 0 or 1, so we choose the one thats bigger.
+        predictions.append(0 if posterior_0 > posterior_1 else 1) 
     
     return predictions
 
-# TODO: Split data for inference
-# HINT: Use train_test_split() with test_size=0.3 and random_state=42
-X_train = None  # TODO: Split training features
-X_test = None  # TODO: Split test features
-y_train = None  # TODO: Split training targets
-y_test = None  # TODO: Split test targets
+#train_test_split returns a tuple, so we assign each of these to a value in that tuple.
+X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
 
-# TODO: Calculate prior probabilities
-# HINT: Count samples in each class and divide by total
-prior_probs = [0.0, 0.0]  # TODO: Calculate prior probabilities
+# calculate prior probabilities
+total = len(y_train)
 
-# TODO: Perform inference
-# HINT: Call naive_bayes_inference() with test features, conditional probabilities, and priors
-predictions = None  # TODO: Perform inference
+prior_probs = [
+    y_train.value_counts().get(0, 0) / total,  #probability of 0
+    y_train.value_counts().get(1, 0) / total   #probability of 1
+]
 
-# TODO: Calculate accuracy
-# HINT: Use accuracy_score() from sklearn.metrics
-accuracy = 0.0  # TODO: Calculate accuracy
+#perform inference
+predictions = naive_bayes_inference(X_test, disease_conditional_probs, prior_probs)
+
+# calculate accuracy
+accuracy = accuracy_score(y_test, predictions)
 print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
 
 # ============================================================================
