@@ -145,9 +145,7 @@ print(f"Disease features combined shape: {disease_features_combined.shape if dis
 print("\nSTEP 3: Bayesian Network Structure Learning")
 print("-" * 50)
 
-# TODO: Implement structure learning algorithm
-# HINT: Use correlation-based approach with a threshold
-# HINT: Calculate absolute correlations and find edges above threshold
+# Calculate absolute correlations and find edges above threshold
 def learn_bayesian_structure(data, threshold=0.3):
     """
     Learn Bayesian network structure using correlation-based approach
@@ -159,15 +157,11 @@ def learn_bayesian_structure(data, threshold=0.3):
     Returns:
         list: List of tuples (node1, node2, correlation)
     """
-    # TODO: Calculate correlation matrix
-    # HINT: Use data.corr().abs() to get absolute correlations
-    correlations = data.corr().abs() # TODO: Calculate correlations
+    # Using data.corr().abs() to get absolute correlations
+    correlations = data.corr().abs() #Calculate correlations
     edges = []
     
-    # TODO: Find edges above threshold
-    # HINT: Use nested loops to check each pair of features
-    # HINT: Only add edges if correlation > threshold
-    # TODO: Add your loop code here
+    #Using nested loops to check each pair of features and only adding the edges if correlation is bigger
     cols = correlations.columns
     for i in range(len(cols)):
         for j in range(i + 1, len(cols)):
@@ -179,25 +173,25 @@ def learn_bayesian_structure(data, threshold=0.3):
     
     return edges
 
-# TODO: Learn structure for gene expression network
-# HINT: Select a subset of genes for network analysis
-# HINT: Use genes from different modules: ['CDK1', 'MAPK1', 'PIK3CA', 'BCL2', 'GLUT1', 'MYC']
+# Model is learning the structure for gene expression network using a subset of the genes
 selected_genes = ['CDK1', 'MAPK1', 'PIK3CA', 'BCL2', 'GLUT1', 'MYC']
-gene_subset = None # TODO: Select gene subset
-gene_network_edges = None  # TODO: Learn gene network structure
+gene_subset = gene_features_combined[selected_genes] 
+gene_network_edges = learn_bayesian_structure(gene_subset, threshold=0.3)  # this is where it learns it's gene network structure
 print(f"Gene network edges found: {len(gene_network_edges) if gene_network_edges is not None else 'Not implemented'}")
 
-# TODO: Learn structure for disease markers network
-# HINT: Use first 15 columns of disease_features_combined
-# HINT: Use a lower threshold (0.1) for disease markers
-disease_network_edges = None  # TODO: Learn disease network structure
+# HINT: Using the first 15 columns of disease_features_combined learn the structure for the disease markers network
+disease_subset = disease_features_combined.iloc[:, :15]
+disease_network_edges = learn_bayesian_structure(disease_subset, threshold=0.1)  # TODO: Learn disease network structure
 print(f"Disease network edges found: {len(disease_network_edges) if disease_network_edges is not None else 'Not implemented'}")
 
-# TODO: Create network graphs
-# HINT: Use nx.Graph() to create NetworkX graphs
-# HINT: Add edges with weights from correlation values
-gene_graph = None  # TODO: Create gene graph
-disease_graph = None  # TODO: Create disease graph
+# Creating network graph
+gene_graph = nx.Graph()
+for n1, n2, w in gene_network_edges:
+    gene_graph.add_edge(n1, n2, weight=w)
+ 
+disease_graph =  nx.Graph() #Create disease graph
+for n1, n2, w in disease_network_edges:
+    disease_graph.add_edge(n1, n2, weight=w)
 
 print(f"Gene network nodes: {gene_graph.number_of_nodes() if gene_graph is not None else 'Not created'}, edges: {gene_graph.number_of_edges() if gene_graph is not None else 'Not created'}")
 print(f"Disease network nodes: {disease_graph.number_of_nodes() if disease_graph is not None else 'Not created'}, edges: {disease_graph.number_of_edges() if disease_graph is not None else 'Not created'}")
