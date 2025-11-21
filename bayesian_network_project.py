@@ -270,74 +270,74 @@ print("\nConditional probabilities for disease markers:")
 # [18 pts] STEP 5: Probabilistic Inference - Owen
 # ============================================================================
 
-print("\nSTEP 5: Probabilistic Inference")
-print("-" * 50)
+# print("\nSTEP 5: Probabilistic Inference")
+# print("-" * 50)
 
-# TODO: Implement Naive Bayes inference function
-# HINT: Use the conditional probabilities and prior probabilities
-# HINT: Calculate likelihood for each class and apply Bayes' theorem
-def naive_bayes_inference(features, conditional_probs, prior_probs):
-    """
-    Perform naive Bayes inference
+# # TODO: Implement Naive Bayes inference function
+# # HINT: Use the conditional probabilities and prior probabilities
+# # HINT: Calculate likelihood for each class and apply Bayes' theorem
+# def naive_bayes_inference(features, conditional_probs, prior_probs):
+#     """
+#     Perform naive Bayes inference
     
-    Args:
-        features: DataFrame of features
-        conditional_probs: Dictionary of conditional probabilities
-        prior_probs: List of prior probabilities [P(class=0), P(class=1)]
+#     Args:
+#         features: DataFrame of features
+#         conditional_probs: Dictionary of conditional probabilities
+#         prior_probs: List of prior probabilities [P(class=0), P(class=1)]
     
-    Returns:
-        list: List of predicted classes
-    """
-    predictions = []
+#     Returns:
+#         list: List of predicted classes
+#     """
+#     predictions = []
     
-    #loop through each sample
-    for _, row in features.iterrows():
-        #calculate likelihood for each class
-        likelihood_0 = 1.0
-        likelihood_1 = 1.0
+#     #loop through each sample
+#     for _, row in features.iterrows():
+#         #calculate likelihood for each class
+#         likelihood_0 = 1.0
+#         likelihood_1 = 1.0
         
-        for feature in features.columns:
-            feature_val = row[feature]
+#         for feature in features.columns:
+#             feature_val = row[feature]
             
-            #get conditional probabilities from dictionary
-            prob_0 = conditional_probs[feature][0].get(feature_val, 0.5) #use the feature with class 0 and the default value of .5
-            prob_1 = conditional_probs[feature][1].get(feature_val, 0.5)
+#             #get conditional probabilities from dictionary
+#             prob_0 = conditional_probs[feature][0].get(feature_val, 0.5) #use the feature with class 0 and the default value of .5
+#             prob_1 = conditional_probs[feature][1].get(feature_val, 0.5)
             
-            likelihood_0 *= prob_0  #update likelihood_0
-            likelihood_1 *= prob_1  #update likelihood_1
+#             likelihood_0 *= prob_0  #update likelihood_0
+#             likelihood_1 *= prob_1  #update likelihood_1
         
-        #apply prior probabilities
-        posterior_0 = likelihood_0 * prior_probs[0]
-        posterior_1 = likelihood_1 * prior_probs[1]
+#         #apply prior probabilities
+#         posterior_0 = likelihood_0 * prior_probs[0]
+#         posterior_1 = likelihood_1 * prior_probs[1]
         
-        #normalize probabilities
-        total = posterior_0 + posterior_1  #total for posteriors
-        posterior_0 /= total  #normalize by dividing posterior / total
-        posterior_1 /= total 
+#         #normalize probabilities
+#         total = posterior_0 + posterior_1  #total for posteriors
+#         posterior_0 /= total  #normalize by dividing posterior / total
+#         posterior_1 /= total 
         
-        #choose class with higher posterior probability
-        #class in this case is either 0 or 1, so we choose the one thats bigger.
-        predictions.append(0 if posterior_0 > posterior_1 else 1) 
+#         #choose class with higher posterior probability
+#         #class in this case is either 0 or 1, so we choose the one thats bigger.
+#         predictions.append(0 if posterior_0 > posterior_1 else 1) 
     
-    return predictions
+#     return predictions
 
-#train_test_split returns a tuple, so we assign each of these to a value in that tuple.
-X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
+# #train_test_split returns a tuple, so we assign each of these to a value in that tuple.
+# X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
 
-# calculate prior probabilities
-total = len(y_train)
+# # calculate prior probabilities
+# total = len(y_train)
 
-prior_probs = [
-    y_train.value_counts().get(0, 0) / total,  #probability of 0
-    y_train.value_counts().get(1, 0) / total   #probability of 1
-]
+# prior_probs = [
+#     y_train.value_counts().get(0, 0) / total,  #probability of 0
+#     y_train.value_counts().get(1, 0) / total   #probability of 1
+# ]
 
-#perform inference
-predictions = naive_bayes_inference(X_test, disease_conditional_probs, prior_probs)
+# #perform inference
+# predictions = naive_bayes_inference(X_test, disease_conditional_probs, prior_probs)
 
-# calculate accuracy
-accuracy = accuracy_score(y_test, predictions)
-print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
+# # calculate accuracy
+# accuracy = accuracy_score(y_test, predictions)
+# print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
 
 # ============================================================================
 # [10 pts] STEP 6: Network Analysis and Visualization
@@ -363,7 +363,7 @@ def analyze_network_properties(graph):
     # Calculating basic properties
     properties['nodes'] = graph.number_of_nodes() #Count nodes
     properties['edges'] = graph.number_of_edges()  #Count edges
-    properties['density'] = nx.density()  #Calculate density
+    properties['density'] = nx.density(graph)  #Calculate density
     
     # Calculate centrality measures
     if graph.number_of_nodes() > 0:
@@ -414,47 +414,43 @@ visualize_network(disease_graph, title="Disease Marker Network")
 plot_network_metrics(disease_graph, title="Disease Network Metrics")
 
 # ============================================================================
-# [10 pts] STEP 7: Protein Interaction Network Analysis
+# [10 pts] STEP 7: Protein Interaction Network Analysis - Owen
 # ============================================================================
 
 print("\nSTEP 7: Protein Interaction Network Analysis")
 print("-" * 50)
 
-# TODO: Create protein interaction network
-# HINT: Use nx.Graph() to create a new graph
-protein_graph = None  # TODO: Create protein graph
+# create protein interaction network
+protein_graph = nx.Graph() 
 
-# TODO: Add edges from protein interaction data
-# HINT: Loop through protein_data rows
-# HINT: Add edges with protein names and interaction scores as weights
-# TODO: Add your loop code here
+# add edges from protein interaction data
+for index, row in protein_data.iterrows():
+    protein_graph.add_edge(row["protein_1"], row["protein_2"], weight = row["interaction_score"]) #use the protein1, protein2, and interaction score columns to add edges.
 
-# TODO: Analyze protein network
-# HINT: Use the same analyze_network_properties() function
-protein_properties = None  # TODO: Analyze protein network
+#analyze protein network
+protein_properties = analyze_network_properties(protein_graph)
 print("Protein Interaction Network Properties:")
-# TODO: Add property printing code
+for key, value in protein_properties.items():
+    print("  ", key, value)
 
-# TODO: Find hub proteins (high degree nodes)
-# HINT: Use dict(protein_graph.degree()) to get degree dictionary
-# HINT: Sort by degree in descending order and take top 5
-protein_degrees = None  # TODO: Get protein degrees
-hub_proteins = None  # TODO: Find hub proteins
+# find hub proteins (high degree nodes)
+protein_degrees = dict(protein_graph.degree())  # Get protein degrees
+hub_proteins = [(degree, protein) for protein, degree in protein_graph.degree()]  #create list
+hub_proteins.sort(reverse=True) #reverse so biggest first
 print(f"\nTop 5 hub proteins:")
-# TODO: Add hub protein printing code
+for degree, protein in hub_proteins[:5]: #only print the first 5
+    print("    ", protein, degree)
 
-# TODO: Analyze interaction types
-# HINT: Use .value_counts() on interaction_type column
-interaction_types = None  # TODO: Analyze interaction types
+# Analyze interaction types
+interaction_types = protein_data["interaction_type"].value_counts()  # this gives the counts for each type of interaction
 print(f"\nInteraction type distribution:")
-# TODO: Add interaction type printing code
+for interaction, count in interaction_types.items():
+    print("   ", interaction, count)
 
-# TODO: Visualize protein network
-# HINT: Use visualize_network() and plot_network_metrics() functions
-# HINT: Call visualize_network(protein_graph, title="Protein Interaction Network")
-# HINT: Call plot_network_metrics(protein_graph, title="Protein Network Metrics")
+# Visualize protein network
 print("\nVisualizing protein interaction network...")
-# TODO: Add visualization code for protein network
+visualize_network(protein_graph, title="Protein Interaction Network")
+plot_network_metrics(protein_graph, title="Protein Network Metrics")
 
 # ============================================================================
 # [4 pts] STEP 8: Model Evaluation and Biological Interpretation
@@ -552,7 +548,7 @@ D) They require less data
 Your answer: [TODO: Choose A, B, C, or D]
 """
 
-q1_answer = "TODO"  # TODO: Replace with your answer (A, B, C, or D)
+q1_answer = "B"  # TODO: Replace with your answer (A, B, C, or D)
 
 """
 Q2: In the context of gene expression analysis, what does a high correlation between 
@@ -566,7 +562,7 @@ D) The genes are always expressed together
 Your answer: [TODO: Choose A, B, C, or D]
 """
 
-q2_answer = "TODO"  # TODO: Replace with your answer (A, B, C, or D)
+q2_answer = "B"  # TODO: Replace with your answer (A, B, C, or D)
 
 """
 Q3: When analyzing protein interaction networks, what does a high betweenness centrality 
@@ -580,7 +576,7 @@ D) The protein is essential for cell survival
 Your answer: [TODO: Choose A, B, C, or D]
 """
 
-q3_answer = "TODO"  # TODO: Replace with your answer (A, B, C, or D)
+q3_answer = "B"  # TODO: Replace with your answer (A, B, C, or D)
 
 print("Conceptual Questions Answered:")
 print(f"Q1: {q1_answer}")
