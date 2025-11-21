@@ -622,17 +622,16 @@ print(f"Q3: {q3_answer}")
 print("\nFINAL RESULTS AND SUMMARY")
 print("=" * 60)
 
-# TODO: Store final results
 # HINT: Create a dictionary with all your results
 final_results = {
-    'gene_network_edges': 0,  # TODO: Count gene network edges
-    'disease_network_edges': 0,  # TODO: Count disease network edges
-    'protein_network_nodes': 0,  # TODO: Count protein network nodes
-    'protein_network_edges': 0,  # TODO: Count protein network edges
-    'inference_accuracy': 0.0,  # TODO: Store inference accuracy
-    'gene_network_density': 0.0,  # TODO: Store gene network density
-    'disease_network_density': 0.0,  # TODO: Store disease network density
-    'protein_network_density': 0.0,  # TODO: Store protein network density
+    'gene_network_edges': gene_network_edges,  # Count gene network edges
+    'disease_network_edges': disease_network_edges,  # Count disease network edges
+    'protein_network_nodes': protein_network_nodes,  # Count protein network nodes
+    'protein_network_edges': protein_network_edges,  # Count protein network edges
+    'inference_accuracy': inference_accuracy,  # Store inference accuracy
+    'gene_network_density': gene_network_density,  # Store gene network density
+    'disease_network_density': disease_network_density,  # Store disease network density
+    'protein_network_density': protein_network_density,  # Store protein network density
     'q1_answer': q1_answer,
     'q2_answer': q2_answer,
     'q3_answer': q3_answer
