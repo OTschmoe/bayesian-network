@@ -221,7 +221,7 @@ def calculate_conditional_probabilities(data, target_col, feature_cols):
     
     # Loop through each feature
     for feature in feature_cols:
-        if data[feature].dtype in ['int64', 'float64', 'bool']:
+        if data[feature].dtype not in ['int64', 'float64', 'bool']:
             continue
 
         # HINT: Use len() and boolean indexing to count occurrences
@@ -263,11 +263,19 @@ disease_binary_features = disease_data[snp_columns[:5]].copy()  # Select disease
 print("\nStep 4c: Checking SNP columns for binary values:")
 # Add SNP checking code
 for col in disease_binary_features.columns:
-    unique_vals = sorted(disease_binary_features[col].unique())
-    print(f"{col} unique values: {unique_vals}")
+    uniques = disease_binary_features[col].unique() #this gets the unique values, but they are in a weird format
+ 
+    pretty_vals = [] #used to make the values printable
+    for u in uniques:
+        if pd.isna(u): #if it's like float64("NAN")
+            pretty_vals.append("NaN")
+        else:
+            pretty_vals.append(int(u))  #or float64("1.0") or something.
+
+    print(f"{col} unique values: {pretty_vals}")
 
     # Binarize if not already 0/1
-    if set(unique_vals) != {0, 1}:
+    if set(pretty_vals) != {0, 1}:
         disease_binary_features[col] = (disease_binary_features[col] > 0).astype(int)
 
 disease_data_combined = pd.concat([disease_binary_features, disease_target], axis=1) # Combine disease data
@@ -291,74 +299,77 @@ for key, value in disease_conditional_probs.items():
 # [18 pts] STEP 5: Probabilistic Inference - Owen
 # ============================================================================
 
-# print("\nSTEP 5: Probabilistic Inference")
-# print("-" * 50)
+print("\nSTEP 5: Probabilistic Inference")
+print("-" * 50)
 
-# # TODO: Implement Naive Bayes inference function
-# # HINT: Use the conditional probabilities and prior probabilities
-# # HINT: Calculate likelihood for each class and apply Bayes' theorem
-# def naive_bayes_inference(features, conditional_probs, prior_probs):
-#     """
-#     Perform naive Bayes inference
+# TODO: Implement Naive Bayes inference function
+# HINT: Use the conditional probabilities and prior probabilities
+# HINT: Calculate likelihood for each class and apply Bayes' theorem
+def naive_bayes_inference(features, conditional_probs, prior_probs):
+    """
+    Perform naive Bayes inference
     
-#     Args:
-#         features: DataFrame of features
-#         conditional_probs: Dictionary of conditional probabilities
-#         prior_probs: List of prior probabilities [P(class=0), P(class=1)]
+    Args:
+        features: DataFrame of features
+        conditional_probs: Dictionary of conditional probabilities
+        prior_probs: List of prior probabilities [P(class=0), P(class=1)]
     
-#     Returns:
-#         list: List of predicted classes
-#     """
-#     predictions = []
+    Returns:
+        list: List of predicted classes
+    """
+    predictions = []
     
-#     #loop through each sample
-#     for _, row in features.iterrows():
-#         #calculate likelihood for each class
-#         likelihood_0 = 1.0
-#         likelihood_1 = 1.0
+    #loop through each sample
+    for _, row in features.iterrows():
+        #calculate likelihood for each class
+        likelihood_0 = 1.0
+        likelihood_1 = 1.0
         
-#         for feature in features.columns:
-#             feature_val = row[feature]
+        for feature in features.columns:
+            feature_val = row[feature]
             
-#             #get conditional probabilities from dictionary
-#             prob_0 = conditional_probs[feature][0].get(feature_val, 0.5) #use the feature with class 0 and the default value of .5
-#             prob_1 = conditional_probs[feature][1].get(feature_val, 0.5)
+            #get conditional probabilities from dictionary
+            key_0 = f"P(diabetes_status=0|{feature}={feature_val})"
+            key_1 = f"P(diabetes_status=1|{feature}={feature_val})"
+
+            prob_0 = conditional_probs.get(key_0, 0.5)
+            prob_1 = conditional_probs.get(key_1, 0.5)
             
-#             likelihood_0 *= prob_0  #update likelihood_0
-#             likelihood_1 *= prob_1  #update likelihood_1
+            likelihood_0 *= prob_0  #update likelihood_0
+            likelihood_1 *= prob_1  #update likelihood_1
         
-#         #apply prior probabilities
-#         posterior_0 = likelihood_0 * prior_probs[0]
-#         posterior_1 = likelihood_1 * prior_probs[1]
+        #apply prior probabilities
+        posterior_0 = likelihood_0 * prior_probs[0]
+        posterior_1 = likelihood_1 * prior_probs[1]
         
-#         #normalize probabilities
-#         total = posterior_0 + posterior_1  #total for posteriors
-#         posterior_0 /= total  #normalize by dividing posterior / total
-#         posterior_1 /= total 
+        #normalize probabilities
+        total = posterior_0 + posterior_1  #total for posteriors
+        posterior_0 /= total  #normalize by dividing posterior / total
+        posterior_1 /= total 
         
-#         #choose class with higher posterior probability
-#         #class in this case is either 0 or 1, so we choose the one thats bigger.
-#         predictions.append(0 if posterior_0 > posterior_1 else 1) 
+        #choose class with higher posterior probability
+        #class in this case is either 0 or 1, so we choose the one thats bigger.
+        predictions.append(0 if posterior_0 > posterior_1 else 1) 
     
-#     return predictions
+    return predictions
 
-# #train_test_split returns a tuple, so we assign each of these to a value in that tuple.
-# X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
+#train_test_split returns a tuple, so we assign each of these to a value in that tuple.
+X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
 
-# # calculate prior probabilities
-# total = len(y_train)
+# calculate prior probabilities
+total = len(y_train)
 
-# prior_probs = [
-#     y_train.value_counts().get(0, 0) / total,  #probability of 0
-#     y_train.value_counts().get(1, 0) / total   #probability of 1
-# ]
+prior_probs = [
+    y_train.value_counts().get(0, 0) / total,  #probability of 0
+    y_train.value_counts().get(1, 0) / total   #probability of 1
+]
 
-# #perform inference
-# predictions = naive_bayes_inference(X_test, disease_conditional_probs, prior_probs)
+#perform inference
+predictions = naive_bayes_inference(X_test, disease_conditional_probs, prior_probs)
 
-# # calculate accuracy
-# accuracy = accuracy_score(y_test, predictions)
-# print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
+# calculate accuracy
+accuracy = accuracy_score(y_test, predictions)
+print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
 
 # ============================================================================
 # [10 pts] STEP 6: Network Analysis and Visualization
