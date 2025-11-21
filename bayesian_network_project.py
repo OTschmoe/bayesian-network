@@ -229,48 +229,72 @@ def calculate_conditional_probabilities(data, target_col, feature_cols):
     # TODO: Loop through each feature
     for feature in feature_cols:
         if data[feature].dtype in ['int64', 'bool']:
-            # TODO: Calculate conditional probabilities for each feature value and target value
-            # HINT: Use len() and boolean indexing to count occurrences
-            # HINT: Calculate P(target=val1|feature=val2) for all combinations
-            for feature_val in [0, 1]:
-                for target_val in [0, 1]:
-                    # TODO: Calculate conditional probability
-                    # HINT: Count samples where both conditions are met
-                    # HINT: Divide by count of samples where feature condition is met
-                    prob = 0.0  # TODO: Calculate probability
-                    conditional_probs[f"P({target_col}={target_val}|{feature}={feature_val})"] = prob
+            continue
+
+        # TODO: Calculate conditional probabilities for each feature value and target value
+        # HINT: Use len() and boolean indexing to count occurrences
+        # HINT: Calculate P(target=val1|feature=val2) for all combinations
+        for feature_val in [0, 1]:
+            
+            for target_val in [0, 1]:
+                # HINT: Count samples where both conditions are met
+                # HINT: Divide by count of samples where feature condition is met
+
+                feature_count = len(data[data[feature] == feature_val]) # Count how many samples have feature = feature_val
+                joint_count = len(data[(data[feature] == feature_val) & (data[target_col] == target_val)]) # Count how many have BOTH feature = feature_val AND target = target_val
+                prob = joint_count / feature_count if feature_count > 0 else 0.0 # Conditional probability P(target_val | feature_val)
+
+                conditional_probs[f"P({target_col}={target_val}|{feature}={feature_val})"] = prob
     
     return conditional_probs
 
-# TODO: Calculate conditional probabilities for gene expression
 # HINT: Use first 5 binary features
-gene_binary_features = None  # TODO: Select binary features
-gene_conditional_probs = None  # TODO: Calculate conditional probabilities
+gene_binary_features = gene_features_binary.iloc[:, :5]  # Select binary features
+
+# Calculate conditional probabilities
+gene_conditional_probs = calculate_conditional_probabilities(
+    pd.concat([gene_binary_features, gene_target], axis=1),
+    target_col="disease_status",
+    feature_cols=gene_binary_features.columns
+)
 
 print("Conditional probabilities for gene expression:")
-# TODO: Add probability printing code
+# print out probabilities
+for key, value in gene_conditional_probs.items():
+    print(f"{key}: {value:.2f}")
 
-# TODO: Calculate conditional probabilities for disease markers
 # HINT: Ensure SNP columns are binary (0/1) before calculation
 # HINT: Use first 5 SNP columns from snp_columns
-disease_binary_features = None  # TODO: Select disease binary features
+disease_binary_features = disease_data[snp_columns[:5]].copy()  # Select disease binary features
 
-# TODO: Binarize SNP columns if needed
 # HINT: Check if values are binary, if not convert to binary
 # HINT: Use (disease_binary_features[col] > 0).astype(int) to binarize
 print("\nStep 4c: Checking SNP columns for binary values:")
-# TODO: Add SNP checking code
+# Add SNP checking code
+for col in disease_binary_features.columns:
+    unique_vals = sorted(disease_binary_features[col].unique())
+    print(f"{col} unique values: {unique_vals}")
 
-disease_data_combined = None  # TODO: Combine disease data
-disease_conditional_probs = None  # TODO: Calculate disease conditional probabilities
-# NOTE: disease_conditional_probs should be a dictionary for grading script access
+    # Binarize if not already 0/1
+    if set(unique_vals) != {0, 1}:
+        disease_binary_features[col] = (disease_binary_features[col] > 0).astype(int)
+
+disease_data_combined = pd.concat([disease_binary_features, disease_target], axis=1) # Combine disease data
+# Calculate disease conditional probabilities
+disease_conditional_probs = calculate_conditional_probabilities(
+    disease_data_combined,
+    target_col="diabetes_status",
+    feature_cols=disease_binary_features.columns
+)
 
 print(f"Disease binary features shape: {disease_binary_features.shape if disease_binary_features is not None else 'Not implemented'}")
 print(f"Disease target shape: {disease_target.shape if disease_target is not None else 'Not implemented'}")
 print(f"SNP columns: {snp_columns[:5] if snp_columns is not None else 'Not implemented'}")
 
 print("\nConditional probabilities for disease markers:")
-# TODO: Add disease probability printing code
+# Add disease probability printing code
+for key, value in disease_conditional_probs.items():
+    print(f"{key}: {value:.4f}")
 
 # ============================================================================
 # [18 pts] STEP 5: Probabilistic Inference - Owen
