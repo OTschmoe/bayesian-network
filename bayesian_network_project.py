@@ -203,7 +203,6 @@ print(f"Disease network nodes: {disease_graph.number_of_nodes() if disease_graph
 print("\nSTEP 4: Conditional Probability Calculations")
 print("-" * 50)
 
-# TODO: Implement conditional probability calculation function
 # HINT: Calculate P(target|feature) for binary features
 # HINT: Use conditional probability formula: P(A|B) = P(A∩B) / P(B)
 def calculate_conditional_probabilities(data, target_col, feature_cols):
@@ -220,16 +219,14 @@ def calculate_conditional_probabilities(data, target_col, feature_cols):
     """
     conditional_probs = {}
     
-    # TODO: Loop through each feature
+    # Loop through each feature
     for feature in feature_cols:
-        if data[feature].dtype in ['int64', 'bool']:
+        if data[feature].dtype in ['int64', 'float64', 'bool']:
             continue
 
-        # TODO: Calculate conditional probabilities for each feature value and target value
         # HINT: Use len() and boolean indexing to count occurrences
         # HINT: Calculate P(target=val1|feature=val2) for all combinations
         for feature_val in [0, 1]:
-            
             for target_val in [0, 1]:
                 # HINT: Count samples where both conditions are met
                 # HINT: Divide by count of samples where feature condition is met
