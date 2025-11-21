@@ -360,52 +360,58 @@ def analyze_network_properties(graph):
     """
     properties = {}
     
-    # TODO: Calculate basic properties
-    # HINT: Use graph.number_of_nodes(), graph.number_of_edges(), nx.density()
-    properties['nodes'] = 0  # TODO: Count nodes
-    properties['edges'] = 0  # TODO: Count edges
-    properties['density'] = 0.0  # TODO: Calculate density
+    # Calculating basic properties
+    properties['nodes'] = graph.number_of_nodes() #Count nodes
+    properties['edges'] = graph.number_of_edges()  #Count edges
+    properties['density'] = nx.density()  #Calculate density
     
-    # TODO: Calculate centrality measures
-    # HINT: Use dict(graph.degree()) to get degree dictionary
+    # Calculate centrality measures
     if graph.number_of_nodes() > 0:
-        # TODO: Calculate average degree
-        # HINT: Sum all degrees and divide by number of nodes
-        properties['avg_degree'] = 0.0  # TODO: Calculate average degree
+        degree_dict = dict(graph.degree())
+        properties['avg_degree'] = sum(degree_dict.values()) / graph.number_of_nodes() # TODO: Calculate average degree
         
-        # TODO: Calculate maximum degree
-        # HINT: Use max() on degree values
-        properties['max_degree'] = 0  # TODO: Calculate max degree
-        
-        # TODO: Calculate clustering coefficient
+        #Calculating maximum degree
+        properties['max_degree'] =  max(degree_dict.values()) #Calculate max degree 
         # HINT: Use nx.average_clustering(graph)
-        properties['avg_clustering'] = 0.0  # TODO: Calculate clustering
+        properties['avg_clustering'] =nx.average_clustering(graph) #Calculate clustering
         
         # TODO: Calculate number of connected components
         # HINT: Use nx.number_connected_components(graph)
-        properties['connected_components'] = 0  # TODO: Count components
+        if nx.is_directed(graph):
+            properties['connected_components'] = nx.number_weakly_connected_components(graph)
+        else:
+            properties['connected_components'] = nx.number_connected_components(graph)
+    else:
+        properties['avg_degree'] = 0.0
+        properties['max_degree'] = 0
+        properties['avg_clustering'] = 0.0
+        properties['connected_components'] = 0
     
     return properties
 
 # TODO: Analyze gene network
 # HINT: Call analyze_network_properties() with gene_graph
-gene_properties = None  # TODO: Analyze gene network
+gene_properties = analyze_network_properties(gene_graph)
 print("Gene Network Properties:")
-# TODO: Add property printing code
+for key, value in gene_properties.items():
+    print(f"  {key}: {value}")
 
-# TODO: Analyze disease network
-# HINT: Call analyze_network_properties() with disease_graph
-disease_properties = None  # TODO: Analyze disease network
+#Analyze disease network
+disease_properties = analyze_network_properties(disease_graph)
 print("\nDisease Network Properties:")
-# TODO: Add property printing code
+for key, value in disease_properties.items():
+    print(f"  {key}: {value}")
 
-# TODO: Visualize networks
-# HINT: Use visualize_network() and plot_network_metrics() functions
-# HINT: Call visualize_network(gene_graph, title="Gene Expression Network")
-# HINT: Call plot_network_metrics(gene_graph, title="Gene Network Metrics")
+# Visualize networks
 print("\nVisualizing networks...")
-# TODO: Add visualization code for gene network
-# TODO: Add visualization code for disease network
+
+# Gene network
+visualize_network(gene_graph, title="Gene Expression Network")
+plot_network_metrics(gene_graph, title="Gene Network Metrics")
+
+# Disease network
+visualize_network(disease_graph, title="Disease Marker Network")
+plot_network_metrics(disease_graph, title="Disease Network Metrics")
 
 # ============================================================================
 # [10 pts] STEP 7: Protein Interaction Network Analysis
