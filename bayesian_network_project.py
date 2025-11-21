@@ -46,7 +46,6 @@ gene_data = pd.read_csv("data/gene_expression.csv")
 disease_data = pd.read_csv("data/disease_markers.csv")  
 protein_data = pd.read_csv("data/protein_interactions.csv")
 
-# HINT: Use .shape, .columns, and .value_counts() to explore the data
 #Print the shapes of all the datasets
 print("Data Shapes")
 print(f"Gene Expression Dataset Shape: {gene_data.shape if gene_data is not None else 'Not loaded'}")
@@ -55,14 +54,14 @@ print(f"Protein Interactions Dataset Shape: {protein_data.shape if protein_data 
 
 #print the first few column names for each dataset
 print("\nData Column Names")
-print("First 10 Gene Expression Dataset column names:")
+print("First 10 Gene Expression Dataset column names:") #there's too many so we only do the first 10
 print("    ", end="")
 for i in range(10):
     print(f"{gene_data.columns[i]}, ", end="")
 print()
 print()
 
-print("First 10 Disease Markers Dataset column names:")
+print("First 10 Disease Markers Dataset column names:") #there's too many so we only do the first 10
 print("    ", end="")
 for i in range(10):
     print(f"{disease_data.columns[i]}, ", end="")
@@ -118,8 +117,7 @@ print(f"Combined feature set shape: {gene_features_combined.shape if gene_featur
 disease_features = disease_data.drop(columns=['patient_id', 'diabetes_status']) # drop columns to get the data from the features
 disease_target = disease_data['diabetes_status'] 
 
-# HINT: Find SNP columns using list comprehension with .startswith('rs')
-# NOTE: The dataset now contains real SNP names like rs7903146, rs12255372, etc.
+# Find SNP columns using list comprehension with .startswith('rs')
 snp_columns = [col for col in disease_features.columns if col.startswith('rs')] # any columns that starts with 'rs' to find the dataset
 clinical_columns = ['age', 'bmi', 'glucose', 'insulin', 'hdl_cholesterol'] #other columns
 
@@ -354,7 +352,7 @@ def naive_bayes_inference(features, conditional_probs, prior_probs):
     return predictions
 
 #train_test_split returns a tuple, so we assign each of these to a value in that tuple.
-X_train, X_test, y_train, y_test = train_test_split(disease_features_combined, disease_target, test_size=.3, random_state=42)  #I think this is based on disease stuff??
+X_train, X_test, y_train, y_test = train_test_split(disease_binary_features, disease_target, test_size=0.3, random_state=4)  #I think this is based on disease stuff??
 
 # calculate prior probabilities
 total = len(y_train)
@@ -491,21 +489,24 @@ plot_network_metrics(protein_graph, title="Protein Network Metrics")
 print("\nSTEP 8: Model Evaluation and Biological Interpretation")
 print("-" * 50)
 
-# TODO: Evaluate gene expression model
-# HINT: Use confusion_matrix() and classification_report() from sklearn.metrics
-confusion_mat = None  # TODO: Calculate confusion matrix
-classification_rep = None  # TODO: Generate classification report
+#Evaluate gene expression model
+confusion_mat = confusion_matrix(y_test, predictions)  #Calculate confusion matrix
+classification_rep = classification_report(y_test, predictions)  #Generate classification report
 
 print("Gene Expression Model Evaluation:")
-# TODO: Add evaluation printing code
+print(classification_rep)
 
 # TODO: Calculate additional biological metrics
 # HINT: Extract true negatives, false positives, false negatives, true positives from confusion matrix
 # HINT: Calculate sensitivity (TPR), specificity (TNR), and precision
-tn, fp, fn, tp = 0, 0, 0, 0  # TODO: Extract confusion matrix values
-sensitivity = 0.0  # TODO: Calculate sensitivity
-specificity = 0.0  # TODO: Calculate specificity
-precision = 0.0  # TODO: Calculate precision
+if confusion_mat.shape == (2, 2):
+    tn, fp, fn, tp = confusion_mat.ravel() #this finds all the positive and negatives
+else:
+    tn = fp = fn = tp = 0
+
+sensitivity = tp / (tp + fn) if (tp + fn) > 0 else 0.0  #this means true positive over true positive plus false negatives.
+specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0  #this is the true negatives over the true negatives ples false positives
+precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0  #this is true positives over true positives plus false positives.
 
 print(f"\nBiological Metrics:")
 print(f"  Sensitivity (True Positive Rate): {sensitivity:.3f}")
@@ -624,14 +625,14 @@ print("=" * 60)
 
 # HINT: Create a dictionary with all your results
 final_results = {
-    'gene_network_edges': gene_network_edges,  # Count gene network edges
-    'disease_network_edges': disease_network_edges,  # Count disease network edges
-    'protein_network_nodes': protein_network_nodes,  # Count protein network nodes
-    'protein_network_edges': protein_network_edges,  # Count protein network edges
-    'inference_accuracy': inference_accuracy,  # Store inference accuracy
-    'gene_network_density': gene_network_density,  # Store gene network density
-    'disease_network_density': disease_network_density,  # Store disease network density
-    'protein_network_density': protein_network_density,  # Store protein network density
+    'gene_network_edges': gene_properties["edges"],
+    'disease_network_edges': disease_properties["edges"],
+    'protein_network_nodes': protein_properties["nodes"],
+    'protein_network_edges': protein_properties["edges"],
+    'inference_accuracy': accuracy,
+    'gene_network_density': gene_properties["density"],
+    'disease_network_density': disease_properties["density"],
+    'protein_network_density': protein_properties["density"],
     'q1_answer': q1_answer,
     'q2_answer': q2_answer,
     'q3_answer': q3_answer
