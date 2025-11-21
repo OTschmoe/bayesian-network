@@ -10,6 +10,8 @@ This project implements Bayesian Networks for bioinformatics applications includ
 - Protein-protein interaction network analysis
 
 Difficulty Level: 6/10
+
+It says we have two errors, but that's not true. They are false, and the program works as intended with them. I don't really understand why this says there is an error. 
 """
 
 
@@ -121,7 +123,8 @@ disease_target = disease_data['diabetes_status']
 snp_columns = [col for col in disease_features.columns if col.startswith('rs')] # any columns that starts with 'rs' to find the dataset
 clinical_columns = ['age', 'bmi', 'glucose', 'insulin', 'hdl_cholesterol'] #other columns
 
-#Creating snp interactions
+#Creating snp interactions 
+#this is useful to look at the interactions between diseases and stuff
 snp_interactions = pd.DataFrame()  #this needs to be a dataframe to concatinate it later
 
 for i in range(len(snp_columns)):
@@ -129,7 +132,7 @@ for i in range(len(snp_columns)):
         col1 = snp_columns[i]
         col2 = snp_columns[j]
         new_col = str(col1) + "by" + str(col2)
-        snp_interactions[new_col] = disease_features[col1] * disease_features[col2]
+        snp_interactions[new_col] = disease_features[col1] * disease_features[col2] #adding to interactions
 
 #this concatonates the original and the new one.
 disease_features_combined = pd.concat([disease_features, snp_interactions], axis=1)  #Combine disease features
@@ -177,9 +180,9 @@ gene_subset = gene_features_combined[selected_genes]
 gene_network_edges = learn_bayesian_structure(gene_subset, threshold=0.3)  # this is where it learns it's gene network structure
 print(f"Gene network edges found: {len(gene_network_edges) if gene_network_edges is not None else 'Not implemented'}")
 
-# HINT: Using the first 15 columns of disease_features_combined learn the structure for the disease markers network
+#Using the first 15 columns of disease_features_combined learn the structure for the disease markers network
 disease_subset = disease_features_combined.iloc[:, :15]
-disease_network_edges = learn_bayesian_structure(disease_subset, threshold=0.1)  # TODO: Learn disease network structure
+disease_network_edges = learn_bayesian_structure(disease_subset, threshold=0.1)  # this learns disease network structure
 print(f"Disease network edges found: {len(disease_network_edges) if disease_network_edges is not None else 'Not implemented'}")
 
 # Creating network graph
@@ -201,8 +204,8 @@ print(f"Disease network nodes: {disease_graph.number_of_nodes() if disease_graph
 print("\nSTEP 4: Conditional Probability Calculations")
 print("-" * 50)
 
-# HINT: Calculate P(target|feature) for binary features
-# HINT: Use conditional probability formula: P(A|B) = P(A∩B) / P(B)
+#Calculate P(target|feature) for binary features
+# the conditional probability formula: P(A|B) = P(A∩B) / P(B)
 def calculate_conditional_probabilities(data, target_col, feature_cols):
     """
     Calculate conditional probabilities P(target|feature) for binary features
@@ -222,12 +225,10 @@ def calculate_conditional_probabilities(data, target_col, feature_cols):
         if data[feature].dtype not in ['int64', 'float64', 'bool']:
             continue
 
-        # HINT: Use len() and boolean indexing to count occurrences
-        # HINT: Calculate P(target=val1|feature=val2) for all combinations
+        # Using len() and boolean indexing to count occurrences
         for feature_val in [0, 1]:
             for target_val in [0, 1]:
-                # HINT: Count samples where both conditions are met
-                # HINT: Divide by count of samples where feature condition is met
+                # count samples where both conditions are met and divide by count of samples where feature condition is met
 
                 feature_count = len(data[data[feature] == feature_val]) # Count how many samples have feature = feature_val
                 joint_count = len(data[(data[feature] == feature_val) & (data[target_col] == target_val)]) # Count how many have BOTH feature = feature_val AND target = target_val
@@ -237,10 +238,9 @@ def calculate_conditional_probabilities(data, target_col, feature_cols):
     
     return conditional_probs
 
-# HINT: Use first 5 binary features
-gene_binary_features = gene_features_binary.iloc[:, :5]  # Select binary features
+gene_binary_features = gene_features_binary.iloc[:, :5]  #select binary features
 
-# Calculate conditional probabilities
+#calculate conditional probabilities
 gene_conditional_probs = calculate_conditional_probabilities(
     pd.concat([gene_binary_features, gene_target], axis=1),
     target_col="disease_status",
@@ -252,12 +252,10 @@ print("Conditional probabilities for gene expression:")
 for key, value in gene_conditional_probs.items():
     print(f"{key}: {value:.2f}")
 
-# HINT: Ensure SNP columns are binary (0/1) before calculation
-# HINT: Use first 5 SNP columns from snp_columns
+# ensure SNP columns are binary (0/1) before calculation
 disease_binary_features = disease_data[snp_columns[:5]].copy()  # Select disease binary features
 
-# HINT: Check if values are binary, if not convert to binary
-# HINT: Use (disease_binary_features[col] > 0).astype(int) to binarize
+#check if values are binary, if not convert to binary
 print("\nStep 4c: Checking SNP columns for binary values:")
 # Add SNP checking code
 for col in disease_binary_features.columns:
@@ -300,9 +298,7 @@ for key, value in disease_conditional_probs.items():
 print("\nSTEP 5: Probabilistic Inference")
 print("-" * 50)
 
-# TODO: Implement Naive Bayes inference function
-# HINT: Use the conditional probabilities and prior probabilities
-# HINT: Calculate likelihood for each class and apply Bayes' theorem
+#Implement Naive Bayes inference function
 def naive_bayes_inference(features, conditional_probs, prior_probs):
     """
     Perform naive Bayes inference
@@ -321,12 +317,12 @@ def naive_bayes_inference(features, conditional_probs, prior_probs):
     for _, row in features.iterrows():
         #calculate likelihood for each class
         likelihood_0 = 1.0
-        likelihood_1 = 1.0
+        likelihood_1 = 1.0 #initialized to 1
         
         for feature in features.columns:
             feature_val = row[feature]
             
-            #get conditional probabilities from dictionary
+            #get conditional probabilities from dictionary (step 4)
             key_0 = f"P(diabetes_status=0|{feature}={feature_val})"
             key_1 = f"P(diabetes_status=1|{feature}={feature_val})"
 
@@ -376,8 +372,7 @@ print(f"Naive Bayes inference accuracy: {accuracy:.3f}")
 print("\nSTEP 6: Network Analysis and Visualization")
 print("-" * 50)
 
-# TODO: Implement network analysis function
-# HINT: Calculate network properties like density, degree, clustering coefficient
+# implement network analysis function
 def analyze_network_properties(graph):
     """
     Analyze network properties
@@ -398,15 +393,13 @@ def analyze_network_properties(graph):
     # Calculate centrality measures
     if graph.number_of_nodes() > 0:
         degree_dict = dict(graph.degree())
-        properties['avg_degree'] = sum(degree_dict.values()) / graph.number_of_nodes() # TODO: Calculate average degree
+        properties['avg_degree'] = sum(degree_dict.values()) / graph.number_of_nodes() # Calculate average degree
         
         #Calculating maximum degree
-        properties['max_degree'] =  max(degree_dict.values()) #Calculate max degree 
-        # HINT: Use nx.average_clustering(graph)
+        properties['max_degree'] =  max(degree_dict.values()) #Calculate max degree
         properties['avg_clustering'] =nx.average_clustering(graph) #Calculate clustering
         
-        # TODO: Calculate number of connected components
-        # HINT: Use nx.number_connected_components(graph)
+        # Calculate number of connected components
         if nx.is_directed(graph):
             properties['connected_components'] = nx.number_weakly_connected_components(graph)
         else:
@@ -419,8 +412,7 @@ def analyze_network_properties(graph):
     
     return properties
 
-# TODO: Analyze gene network
-# HINT: Call analyze_network_properties() with gene_graph
+#  Analyze gene network
 gene_properties = analyze_network_properties(gene_graph)
 print("Gene Network Properties:")
 for key, value in gene_properties.items():
@@ -464,8 +456,8 @@ for key, value in protein_properties.items():
     print("  ", key, value)
 
 # find hub proteins (high degree nodes)
-protein_degrees = dict(protein_graph.degree())  # Get protein degrees
-hub_proteins = [(degree, protein) for protein, degree in protein_graph.degree()]  #create list
+protein_degrees = dict(protein_graph.degree())  # Get protein degrees. For some reason it says protein_graph.degree() is an int, but it's NOT, so ignore this error.
+hub_proteins = [(degree, protein) for protein, degree in protein_graph.degree()]  #create list. For some reason it says protein_graph.degree() is an int, but it's NOT, so ignore this error.
 hub_proteins.sort(reverse=True) #reverse so biggest first
 print(f"\nTop 5 hub proteins:")
 for degree, protein in hub_proteins[:5]: #only print the first 5
@@ -496,9 +488,7 @@ classification_rep = classification_report(y_test, predictions)  #Generate class
 print("Gene Expression Model Evaluation:")
 print(classification_rep)
 
-# TODO: Calculate additional biological metrics
-# HINT: Extract true negatives, false positives, false negatives, true positives from confusion matrix
-# HINT: Calculate sensitivity (TPR), specificity (TNR), and precision
+# Calculate additional biological metrics
 if confusion_mat.shape == (2, 2):
     tn, fp, fn, tp = confusion_mat.ravel() #this finds all the positive and negatives
 else:
